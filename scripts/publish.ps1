@@ -1,7 +1,8 @@
 # One-time publish: creates the public GitHub repo (if missing), pushes main,
 # enables GitHub Pages with the Actions workflow, and prints the site URL.
 # Requires: GitHub CLI (gh) logged in with `gh auth login`.
-$ErrorActionPreference = 'Stop'
+# Native commands are checked through $LASTEXITCODE; 'Stop' would abort on gh's expected "not found" output.
+$ErrorActionPreference = 'Continue'
 $repo = 'majed-data-academy'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
@@ -18,6 +19,7 @@ if ($LASTEXITCODE -eq 0) {
   if (-not (git remote 2>$null | Select-String -SimpleMatch 'origin')) { git remote add origin "https://github.com/$owner/$repo.git" }
 } else {
   gh repo create "$owner/$repo" --public --description 'Arabic interactive learning platform for Business Data Management' --source . --remote origin
+  if ($LASTEXITCODE -ne 0) { throw 'gh repo create failed' }
 }
 
 # Use gh's login for this push only, without changing the global git credential settings.
