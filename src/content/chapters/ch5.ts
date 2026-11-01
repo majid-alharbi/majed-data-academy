@@ -1,0 +1,115 @@
+import type { Chapter } from '../types';
+
+export const ch5: Chapter = {
+  id: 'ch5',
+  number: 5,
+  title: 'Oracle SQL',
+  description: 'الشكل العام للاستعلام، ترتيب التنفيذ، الأدوات الأساسية، شروط WHERE و NULL و ORDER BY.',
+  topics: ['الشكل العام وترتيب التنفيذ', 'أدوات أساسية', 'NULL', 'شروط WHERE', 'AND و OR', 'ORDER BY', 'أخطاء شائعة'],
+  lessons: [
+    {
+      id: 'l5-1',
+      chapterId: 'ch5',
+      title: 'الشكل العام وترتيب التنفيذ والأدوات الأساسية',
+      goal: 'أن تكتب استعلام SELECT كاملًا وتعرف لماذا لا يُستخدم الاسم المستعار في WHERE.',
+      sourcePages: [8, 9],
+      explain: [
+        { t: 'code', code: 'SELECT   الأعمدة\nFROM     hr.employees\nWHERE    الشرط\nORDER BY الترتيب;' },
+        { t: 'h', text: 'ترتيب التنفيذ' },
+        { t: 'math', tex: '\\text{FROM} \\rightarrow \\text{WHERE} \\rightarrow \\text{SELECT} \\rightarrow \\text{DISTINCT} \\rightarrow \\text{ORDER BY}' },
+        { t: 'note', kind: 'remember', text: 'لأن WHERE تُنفذ قبل SELECT، لا يمكن استخدام الاسم المستعار (alias) داخل WHERE، لكن يمكن استخدامه في ORDER BY.' },
+        { t: 'h', text: 'أدوات أساسية' },
+        {
+          t: 'table',
+          head: ['الأداة', 'مثال'],
+          rows: [
+            ['كل الأعمدة', '`SELECT *`'],
+            ['اسم مستعار', '`salary*12 AS annual_salary`'],
+            ['دمج النصوص', "`first_name || ' ' || last_name`"],
+            ['حذف المكرر', '`SELECT DISTINCT department_id`'],
+            ['التاريخ', '`hire_date + 30` يعطي تاريخًا · `SYSDATE - hire_date` يعطي عدد الأيام'],
+          ],
+        },
+        { t: 'p', text: '**ترتيب العمليات الحسابية**: الأقواس أولًا، ثم الضرب والقسمة، ثم الجمع والطرح. مثلًا $2 + 3 \\times 4 = 14$ بينما $(2 + 3) \\times 4 = 20$.' },
+      ],
+      simpler: [{ t: 'note', kind: 'simple', text: 'SELECT تحدد الأعمدة التي تريدها، و FROM من أي جدول، و WHERE أي الصفوف، و ORDER BY بأي ترتيب.' }],
+      brief: { text: 'التنفيذ: FROM ← WHERE ← SELECT ← DISTINCT ← ORDER BY.', example: 'SELECT last_name, salary*12 AS annual FROM employees ORDER BY annual;' },
+      example: {
+        title: 'تقرير الرواتب السنوية',
+        blocks: [
+          { t: 'code', code: "SELECT first_name || ' ' || last_name AS full_name,\n       salary * 12 AS annual_salary\nFROM   employees\nWHERE  department_id = 60\nORDER BY annual_salary DESC;" },
+          { t: 'p', text: 'لو كتبنا `WHERE annual_salary > 100000` سيظهر خطأ لأن الاسم المستعار لم يُعرّف بعد عند تنفيذ WHERE. الصحيح: `WHERE salary * 12 > 100000`.' },
+        ],
+      },
+      activity: {
+        widget: 'order',
+        title: 'رتّب مراحل تنفيذ الاستعلام كما ينفذها Oracle',
+        correct: ['FROM', 'WHERE', 'SELECT', 'DISTINCT', 'ORDER BY'],
+        why: 'يحدد النظام الجدول أولًا، ثم يصفّي الصفوف، ثم يختار الأعمدة، ثم يحذف المكرر، ثم يرتب.',
+      },
+      mistakes: ['استخدام alias داخل WHERE.', 'نسيان المسافة عند الدمج: first_name || last_name.', 'الظن أن ORDER BY تُنفذ أولًا لأنها «تنظم» النتيجة.'],
+      review: ['SELECT ← FROM ← WHERE ← ORDER BY كتابةً.', 'FROM ← WHERE ← SELECT ← DISTINCT ← ORDER BY تنفيذًا.', '|| للدمج، AS للاسم المستعار.'],
+    },
+    {
+      id: 'l5-2',
+      chapterId: 'ch5',
+      title: 'NULL وشروط WHERE والترتيب',
+      goal: 'أن تكتب شروط WHERE بالمقارنة والنصوص و BETWEEN و IN و LIKE و IS NULL، وتستخدم الأقواس مع AND و OR.',
+      sourcePages: [9, 10],
+      explain: [
+        { t: 'h', text: 'NULL' },
+        { t: 'list', items: ['أي عملية حسابية فيها NULL نتيجتها NULL.', 'للبحث عن الفارغ نكتب `IS NULL`، لا `= NULL`.', '`= 0` تعني أن القيمة مسجلة وهي صفر، و`IS NULL` تعني أنه لا توجد قيمة أصلًا.'] },
+        { t: 'h', text: 'شروط WHERE' },
+        {
+          t: 'table',
+          head: ['الشرط', 'مثال', 'ملاحظة'],
+          rows: [
+            ['المقارنة', '`salary > 10000`', 'علامة «لا يساوي» هي `<>`'],
+            ['النصوص', "`last_name = 'King'`", 'بين علامتي تنصيص مفردتين'],
+            ['BETWEEN', '`BETWEEN 2500 AND 3500`', 'يشمل الحدين، والأصغر يُكتب أولًا'],
+            ['IN', '`IN (10, 20, 30)`', 'اختصار لعدة OR'],
+            ['LIKE', "`LIKE 'S%'`", '`%` أي عدد من الحروف، و `_` حرف واحد'],
+            ['NULL', '`IS NULL / IS NOT NULL`', 'الطريقة الوحيدة لفحص الفارغ'],
+          ],
+        },
+        { t: 'h', text: 'AND و OR' },
+        { t: 'p', text: 'الأولوية: **NOT** ثم **AND** ثم **OR**. استخدم الأقواس دائمًا:' },
+        { t: 'code', code: "WHERE (job_id = 'SA_REP' OR job_id = 'AD_PRES') AND salary > 15000" },
+        { t: 'h', text: 'ORDER BY' },
+        { t: 'p', text: 'الترتيب تصاعدي (ASC) بشكل افتراضي، و DESC للترتيب التنازلي. تُكتب في آخر الاستعلام، وبدونها لا يوجد ترتيب مضمون للنتائج.' },
+        { t: 'h', text: 'أخطاء شائعة' },
+        {
+          t: 'table',
+          head: ['خطأ ✗', 'صحيح ✓'],
+          rows: [
+            ['`= NULL`', '`IS NULL`'],
+            ['`last_name = King`', "`last_name = 'King'`"],
+            ['`BETWEEN 3500 AND 2500`', '`BETWEEN 2500 AND 3500`'],
+            ['`ORDER salary`', '`ORDER BY salary`'],
+          ],
+        },
+      ],
+      simpler: [{ t: 'note', kind: 'simple', text: 'NULL مثل خانة «لم يُجب عنها» في استبيان: لا تقل إنها تساوي صفرًا، ولا تقارنها بعلامة =، بل اسأل: هل هي فارغة؟ (IS NULL).' }],
+      brief: { text: 'IS NULL للفارغ، النصوص بين \' \'، BETWEEN الأصغر أولًا، الأقواس مع OR.', example: "SELECT last_name FROM employees WHERE department_id IS NULL;" },
+      example: {
+        title: 'المثال الكامل من الملخص',
+        blocks: [
+          { t: 'code', code: '-- موظفو القسم 80 الذين رواتبهم فوق 10000، من الأعلى راتبًا\nSELECT   last_name, salary\nFROM     hr.employees\nWHERE    department_id = 80 AND salary > 10000\nORDER BY salary DESC;' },
+          { t: 'table', head: ['last_name', 'salary'], rows: [['Russell', '14000'], ['Partners', '13500'], ['Abel', '11000'], ['Zlotkey', '10500']] },
+          { t: 'p', text: 'النتيجة أعلاه من بيانات التدريب في المنصة (نسخة مبسطة من مخطط HR). جرّبها بنفسك في المحرر أدناه.' },
+        ],
+      },
+      activity: {
+        widget: 'sql',
+        presets: [
+          { label: 'المثال الكامل', sql: 'SELECT last_name, salary\nFROM hr.employees\nWHERE department_id = 80 AND salary > 10000\nORDER BY salary DESC;' },
+          { label: '= NULL مقابل IS NULL', sql: 'SELECT last_name FROM employees WHERE department_id = NULL;\n-- غيّر = NULL إلى IS NULL ثم شغّل' },
+          { label: 'أثر الأقواس', sql: "SELECT last_name, job_id, salary\nFROM employees\nWHERE job_id = 'SA_REP' OR job_id = 'AD_PRES' AND salary > 15000;\n-- أضف الأقواس وقارن النتيجة" },
+          { label: 'LIKE', sql: "SELECT last_name FROM employees WHERE last_name LIKE '_a%';" },
+        ],
+      },
+      mistakes: ['كتابة = NULL.', 'نسيان علامات التنصيص حول النص.', 'BETWEEN بالحد الأكبر أولًا.', 'كتابة ORDER بدون BY.', 'نسيان الأقواس مع OR.'],
+      review: ['NULL في الحساب ← NULL.', 'IS NULL / IS NOT NULL.', 'NOT ثم AND ثم OR.', 'ASC افتراضي، DESC تنازلي.'],
+    },
+  ],
+};
