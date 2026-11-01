@@ -20,7 +20,9 @@ if ($LASTEXITCODE -eq 0) {
   gh repo create "$owner/$repo" --public --description 'منصة تعليمية عربية لمقرر إدارة بيانات الأعمال' --source . --remote origin
 }
 
-git push -u origin main
+# Use gh's login for this push only, without changing the global git credential settings.
+git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push -u origin main
+if ($LASTEXITCODE -ne 0) { throw 'git push failed' }
 
 # Enable Pages with GitHub Actions as the source (ignore "already enabled").
 gh api -X POST "repos/$owner/$repo/pages" -f build_type=workflow *> $null
