@@ -17,7 +17,7 @@ if ($LASTEXITCODE -eq 0) {
   Write-Host "Repository $owner/$repo already exists; not creating a duplicate."
   if (-not (git remote 2>$null | Select-String -SimpleMatch 'origin')) { git remote add origin "https://github.com/$owner/$repo.git" }
 } else {
-  gh repo create "$owner/$repo" --public --description 'منصة تعليمية عربية لمقرر إدارة بيانات الأعمال' --source . --remote origin
+  gh repo create "$owner/$repo" --public --description 'Arabic interactive learning platform for Business Data Management' --source . --remote origin
 }
 
 # Use gh's login for this push only, without changing the global git credential settings.
